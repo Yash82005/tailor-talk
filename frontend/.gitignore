@@ -1,0 +1,4 @@
+backend/service_account.json
+test_openai.py
+.env
+__pycache__/
