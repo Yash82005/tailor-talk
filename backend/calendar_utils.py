@@ -1,16 +1,25 @@
+import os
+import json
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from datetime import datetime, timedelta
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-SERVICE_ACCOUNT_FILE = 'backend/service_account.json'
-CALENDAR_ID = 'primary'  # or your full calendar ID
+CALENDAR_ID = 'primary'
 
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+
+if "GOOGLE_SERVICE_ACCOUNT" in os.environ:
+    service_account_info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT"])
+    credentials = service_account.Credentials.from_service_account_info(
+        service_account_info, scopes=SCOPES
+    )
+else:
+    credentials = service_account.Credentials.from_service_account_file(
+        'backend/service_account.json', scopes=SCOPES
+    )
+
 
 service = build('calendar', 'v3', credentials=credentials)
-
 
 def get_free_slots():
     now = datetime.utcnow().isoformat() + 'Z'
@@ -25,9 +34,7 @@ def get_free_slots():
     ).execute()
 
     events = events_result.get('items', [])
-
-    return events  # later filter to get free slots
-
+    return events
 
 def create_event(start, end, summary):
     event = {
